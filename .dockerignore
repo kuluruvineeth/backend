@@ -1,0 +1,11 @@
+.dockerignore
+.env
+.github
+.vscode
+node_modules
+coverage
+dist
+Dockerfile
+docker-compose.yml
+docker-compose.example.yml
+npm-debug.log
