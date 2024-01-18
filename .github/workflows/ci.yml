@@ -41,3 +41,30 @@ jobs:
         if: steps.cache-dependenies.outputs.cache-hit != 'true'
         run: |
           npm install
+  lint-format:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [18]
+    needs: install-cache
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@v2
+      - name: Use Node.js ${{matrix.node}}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{matrix.node}}
+      - name: Restore npm dependencies
+        uses: actions/cache@v2
+        id: cache-dependenies
+        with:
+          path: node_modules
+          key: ${{runner.os}}-npm-${{hashFiles('**/package-lock.json')}}
+          restore-keys: |
+            ${{runner.os}}-npm-
+      - name: Run lint
+        run: |
+          npm run lint
+      - name: Run prettier
+        run: |
+          npm run format
