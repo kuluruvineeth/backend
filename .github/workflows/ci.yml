@@ -68,3 +68,72 @@ jobs:
       - name: Run prettier
         run: |
           npm run format
+  test:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: root
+          POSTGRES_DB: test-organize-simple
+        ports:
+          - 5432:5432
+    strategy:
+      matrix:
+        node: [18]
+    needs: install-cache
+    env:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+      DATABASE_URL: postgres://postgres:root@localhost:5432/test-organize-simple?schema=public&connect_timeout=300
+      POPPLER_BIN_PATH: /usr/bin
+      OPENAI_API_KEY: ${{secrets.OPENAI_API_KEY}}
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@v2
+      - name: Use Node.js ${{matrix.node}}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{matrix.node}}
+      - name: Restore npm dependencies
+        uses: actions/cache@v2
+        id: cache-dependenies
+        with:
+          path: node_modules
+          key: ${{runner.os}}-npm-${{hashFiles('**/package-lock.json')}}
+          restore-keys: |
+            ${{runner.os}}-npm-
+      - name: Install poppler-utils
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: poppler-utils
+          version: 1.0
+      - name: Run test
+        run: |
+          npx prisma db push && npm run test
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [18]
+    needs: [lint-format, test]
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@v2
+      - name: Use Node.js ${{matrix.node}}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{matrix.node}}
+      - name: Restore npm dependencies
+        uses: actions/cache@v2
+        id: cache-dependenies
+        with:
+          path: node_modules
+          key: ${{runner.os}}-npm-${{hashFiles('**/package-lock.json')}}
+          restore-keys: |
+            ${{runner.os}}-npm-
+      - name: Run build
+        run: |
+          npm run build
