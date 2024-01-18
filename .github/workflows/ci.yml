@@ -12,9 +12,9 @@ on:
       - '**.yml'
       - '**.json'
 
-concurrency:
-  group: ${{github.head_ref}}
-  cancel-in-progress: true
+# concurrency:
+#   group: ${{github.head_ref}}
+#   cancel-in-progress: true
 
 jobs:
   install-cache:
