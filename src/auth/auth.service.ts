@@ -11,6 +11,7 @@ export class AuthService {
     if (!UUID_REGEX.test(apiKey)) {
       return true;
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const apiKeyExists = await this.prisma.apiKey.findUnique({
       where: { id: apiKey },
     });
